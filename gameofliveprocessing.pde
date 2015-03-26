@@ -1,18 +1,28 @@
 // Game of Life implementation
 // Benjamin Hiltpolt
 
-int cols = 20;
-int rows = 20;
-int cell_size = 25;
+int cols = 30;
+int rows = 30;
+int cell_size = 15;
+int speed = 2;
+int frames = 30;
 int[][] grid; 
 int[][] grid_updated; 
+int[][] grid_used;
+
+boolean run = false;
+boolean debug = false;
 
 void setup() {
-  size(cell_size * cols, cell_size * rows);
-  frameRate(30);
+  size(cell_size * cols, cell_size * (rows+1));
+  frameRate(frames);
   grid = new int[cols][rows];
   grid_updated = new int[cols][rows];
 
+  initGrid();
+}
+
+void initGrid() {
   for (int i = 0; i < cols; i ++ ) {
     for (int j = 0; j < rows; j ++ ) {
       grid[i][j] = 0;
@@ -29,7 +39,11 @@ void update_grid() {
     }
   }
 
-  grid = grid_updated;
+  if (run) {
+    for (int i = 0; i < cols; i++) {
+      arrayCopy(grid_updated[i], grid[i]);
+    }
+  }
 }
 
 int lives(int i, int j) {
@@ -75,6 +89,10 @@ int number_of_neighbours(int i, int j) {
 }
 
 void draw() {
+  if (mousePressed) {
+    grid[mouseX/cell_size][mouseY/cell_size] = 1;
+  }
+
   background(0);
   for (int i = 0; i < cols; i ++ ) {     
     for (int j = 0; j < rows; j ++ ) {
@@ -88,12 +106,25 @@ void draw() {
       rect(i*cell_size, j*cell_size, cell_size, cell_size);
 
       //Debugg to display number of neighbours and updated grid
-     // debug(i, j);
+      if (debug) {
+        debug(i, j);
+      }
+
+      drawInfo();
     }
   }
 
-  if (frameCount % 60 == 0) {  
+  if (frameCount % speed == 0) {  
     update_grid();
+  }
+}
+
+void drawInfo() {
+  fill(256, 0, 0);
+  if (run) {
+    text("running: " + run + " Click to draw. Press s to stop. Press x to clear all. Press g to create a glider.", cell_size, rows*cell_size, cell_size*rows, cell_size);
+  } else {
+    text("running: " + run + " Click to draw. Press a to run. Press x to clear all. Press g to create a glider.", cell_size, rows*cell_size, cell_size*rows, cell_size);
   }
 }
 
@@ -102,7 +133,7 @@ void debug(int i, int j) {
     fill(256, 0, 0);
   } else {
     stroke(50);
-    fill(0,0,0);
+    fill(0, 0, 0);
   }
   text("n:"+number_of_neighbours(i, j), i*cell_size, j*cell_size, cell_size, cell_size);
 
@@ -115,7 +146,34 @@ void debug(int i, int j) {
   rect(i*cell_size, j*cell_size, cell_size, cell_size);
 }
 
-void mousePressed() {
-  grid[mouseX/cell_size][mouseY/cell_size] = 1;
+
+void keyPressed() {
+  if (key == 'a') {
+    run = true;
+  } 
+  if (key == 's') {
+    run = false;
+  }
+  if (key == 'p') {
+    debug = true;
+  }
+  if (key == 'P') {
+    debug = false;
+  }
+  if (key == 'x') {
+    initGrid();
+  }
+  if (key == 'g') {
+    createGlider();
+  }
+}
+
+void createGlider() {
+  initGrid();
+  grid[5][5] = 1;
+  grid[6][5] = 1;
+  grid[7][5] = 1;
+  grid[7][4] = 1;
+  grid[6][3] = 1;
 }
 
